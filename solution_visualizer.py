@@ -2,7 +2,7 @@ import csv
 import matplotlib.pyplot as plt
 
 
-# visualizer for k-center solution
+# visualizer for k-center solution on normalized bank-data
 
 # import math
 def get_data(filename, delimeter=","):
@@ -36,21 +36,21 @@ def main():
         elif point[2] == 3:
             better_data.append((point[0], point[1], point_size, 'c'))
 
-    #OPT 200
+    
+    #OPT SOLUTION FOR FIRST 200 POINTS
+    
     #rad = 0.06719536449573707
     #cents = [9,26,62,63,107,114,164,193,197,198]
 
 
-    #OPT 500
+    #OPTIMAL SOLUTION FOR FIRST 500 POINTS
     #rad = 0.0704399555878803
     #cents = [209,479,456,346,404,391,198,93,195,309]
     rad = 0
     cents = []
 
-    #plt.scatter(*zip(*better_data[:200]))
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
-
 
     for i in cents:
         point = better_data[i]
@@ -59,9 +59,7 @@ def main():
         ax.add_patch(circ)
 
 
-
     plt.scatter(*zip(*better_data))
-   # plt.scatter(0.5, 0.2, s=1000, facecolors='none', edgecolors='r')
 
     plt.show()
 
