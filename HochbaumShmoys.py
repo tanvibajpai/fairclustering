@@ -98,7 +98,7 @@ def binsearch_thresholds(G,test):
             # elif index == 0:
             #     return radii[index]
 
-    #Getting here means lower=upper
+    # Getting here means lower=upper
     return radii[lower]
 
 # Gonzalez. Takes in a weighted graph. Returns list of centers
