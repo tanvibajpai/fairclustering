@@ -15,14 +15,18 @@ def fair_assignment(G,S,lowerbounds,upperbounds):
 
     # Variables
     for v in G.nodes():
-        for u in G.nodes():
+        for u in S:
             x[u,v] = model.addVar(vtype = GRB.BINARY, name = "x_%s,%s" % (u,v))
 
     # Constraints
-    for u in G.nodes():
-        model.addConstr(quicksum(x[v, u] for v in G[u]) + x[u, u] == 1, "C8")
-        for v in G.nodes():
-            if not (u, v) in G.edges and not u == v:
+    for v in G.nodes():
+
+        amount_assigned_from_other_nodes = quicksum(x[u, v] for u in (set(G[v]) & set(S))) # Is there a faster way to check two booleans in list comp
+        if v in S:  #If v is a center it could be assigned to itself
+            amount_assigned_from_other_nodes += x[v, v]
+        model.addConstr(amount_assigned_from_other_nodes == 1, "C8")
+        for u in S:
+            if not (v, u) in G.edges and not v == u:
                 model.addConstr(x[u, v] == 0,"C12")
 
     model.write("fair_assignment.lp")
@@ -35,7 +39,7 @@ def fair_assignment(G,S,lowerbounds,upperbounds):
         p_1i, q_1i = lowerbounds[i]
         p_2i, q_2i = upperbounds[i]
 
-        for u in G.nodes():
+        for u in S:
             # Constraint 4
             model.addConstr(p_1i*quicksum([x[u,v] for v in G.nodes() if colourdict[v] == 0]) <= q_1i*quicksum([x[u,v] for v in G.nodes() if colourdict[v] == i]),"C9")
             # model.write("fairkcenter.lp")
@@ -89,11 +93,12 @@ def main():
 
     plt.show()
 
-    k = 1
-    model = fair_k_center(G_r,k,lowerbounds,upperbounds)
-    # model.write("fairkcenter.lp")
+    S = [0,1]
+
+    model = fair_assignment(G_r,S,lowerbounds,upperbounds)
+    model.write("fairkcenter.lp")
     model.optimize()
-    # model.printAttr("X")
+    model.printAttr("X")
     for v in model.getVars():
         print(str(v.varName) + " \t| " + str(v.x))
 
