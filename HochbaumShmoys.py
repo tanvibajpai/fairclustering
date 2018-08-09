@@ -45,6 +45,7 @@ def HS_select(Gr,k):
 
 # Takes in an unweighted graph and an integer k. Returns (centers, booleanfor whether it placed at most k)
 # Same as normal HS_select except instead of arbitrarily picking uncovered nodes, it picks the one that covers the least amount of points
+# UNFINISHED
 def slow_select(G,k):
     # create a priority queue of nodes. The priority is how many nodes they would cover if selected.
     mylist = []
