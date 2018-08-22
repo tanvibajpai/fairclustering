@@ -27,6 +27,37 @@ def dominating_set(G,k):
     model.__data = y
     return model
 
+# Takes in unweighted graph and k
+def dominating_set_dominated_by_our_centers(G,S,k):
+    model = dominating_set(G,k)
+
+    y = model.__data
+    # n = G.number_of_nodes()
+
+    # # Variables
+    # for u in G.nodes():
+    #     y[u] = model.addVar(vtype = GRB.BINARY, name = "y_%s" % u)
+    #
+    # # Constraints
+    # model.addConstr(quicksum(y[u] for u in G.nodes) <= k)
+    #
+    # for v in G.nodes():
+    #     model.addConstr(quicksum(y[u] for u in G.neighbors(v)) + y[v] >= 1, "C_%s" % v)
+
+    # Constraint encoding the fact that the dominating set has to be dominated by our centers:
+    # nodes not dominated by our centers cannot be selected:
+    S = set(S)
+    for u in set(G.nodes()).difference(S):
+        if not S.intersection(G.neighbors(u)):
+            model.addConstr(y[u] == 0)
+
+    model.write("dominating_set_dominated_by_our_centers.lp")
+
+    model.update()
+    model.__data = y
+    return model
+
+
 def draw_graph(G):
     nx.draw(G,with_labels=True)
     plt.show()
@@ -48,13 +79,13 @@ def main():
 
 
     # G_r = threshhold_graph(G,r)
-    # G_r = complete_graph(78)
-    G_r = nx.cycle_graph(6)
-    k = 2
-
+    # G_r = complete_graph(8)
+    G_r = nx.cycle_graph(8)
+    k = 5
+    S = set([1])
     draw_graph(G_r)
 
-    model = dominating_set(G_r,k)
+    model = dominating_set_dominated_by_our_centers(G_r,S,k)
     model.optimize()
     # model.printAttr("X")
     for v in model.getVars():
