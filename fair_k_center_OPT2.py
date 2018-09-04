@@ -1,14 +1,14 @@
 from gurobipy import *
 from networkx import *
 import matplotlib.pyplot as plt
-import CAAR.k_center_OPT2
+import k_center_OPT2
 # import math
 
 
 # Takes in a coloured, unweighted graph and the ratio constraints
 # lowerbounds is a list of tuples (p1i, q1i) and upperbounds is a list of tuples (p2i,q2i)
 def fair_k_center(G,k,lowerbounds,upperbounds):
-    model = CAAR.k_center_OPT2.k_center(G,k)
+    model = k_center_OPT2.k_center(G,k)
     # HOW TO RENAME THE FUCKING MODEL
 
     x = model.__data[0]
