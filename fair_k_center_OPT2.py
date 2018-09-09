@@ -1,8 +1,37 @@
 from gurobipy import *
 from networkx import *
+import csv
+from itertools import combinations
 import matplotlib.pyplot as plt
 import k_center_OPT2
+import random
+import scipy
+import numpy as np
 # import math
+
+def get_data(filename,delimeter = ","):
+    with open(filename, "r") as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=delimeter)
+        next(csv_reader)
+        data = [line for line in csv_reader]
+
+    return data
+
+# Takes in a list of tuples with the first entries being non-protected and the last entry being protected
+def make_graph(data, metric):
+    G = nx.Graph()
+    n = len(data)
+    m = len(data[0])
+    G.add_nodes_from([(i,dict(colour=data[i][m-1])) for i in range(n)]) #There's got to be a better way to do this
+    G.add_weighted_edges_from([(i,j,metric(data[i][0:m],data[j][0:m])) for (i,j) in combinations(range(n),2)])
+    return G
+
+def euclidean_metric(point1, point2):
+
+    if not len(point1) == len(point2):
+        raise ValueError("The tuples arent the same length")
+
+    return (sum([(point1[i] - point2[i])**2 for i in range(len(point1)-1)]))**(1/2)
 
 
 # Takes in a coloured, unweighted graph and the ratio constraints
@@ -13,23 +42,8 @@ def fair_k_center(G,k,lowerbounds,upperbounds):
 
     x = model.__data[0]
     y = model.__data[1]
-    # n = G.number_of_nodes()
     g = len(lowerbounds) #Number of colours
 
-    # # Variables
-    # for v in G.nodes():
-    #     y[v] = model.addVar(vtype=GRB.BINARY, name = "y_%s" % v)
-    #     for u in G.nodes():
-    #         x[u,v] = model.addVar(vtype = GRB.BINARY, name = "x_%s,%s" % (u,v))
-    #
-    # # Constraints
-    # model.addConstr(quicksum(y[u] for u in G.nodes()) == k,"C1")
-    # for u in G.nodes():
-    #     model.addConstr(quicksum(x[v, u] for v in G[u]) + x[u, u] == 1, "C2")
-    #     for v in G.nodes():
-    #         model.addConstr(x[u, v] <= y[u],"C3")
-    #         if not (u, v) in G.edges and not u == v:
-    #             model.addConstr(x[u, v] == 0,"C6")
 
     model.write("fairkcenter.lp")
 
@@ -67,41 +81,67 @@ def threshhold_graph(G,r):
     return G_r
 
 def main():
-    G = networkx.Graph()
-    G.add_nodes_from([1,2,3,4,5])
-    G.add_weighted_edges_from([(1,2,1),(2,3,2),(3,4,3),(4,5,4),(5,1,5)])
-
-    r = 5
-    # G_r = threshhold_graph(G,r)
-    # G_r = complete_graph(2)
-    G_r = nx.cycle_graph(4)
+    
+    read_data = get_data("normalized_bank_data.txt",',')
+    use_data = [(float(line[0]),float(line[1]),line[2]) for line in read_data]
+    test_data = use_data[:100]
+    #599 have color 1, 132 have color 2, 269 have color 0 
+    G = make_graph(test_data,euclidean_metric)
 
     # NOTE: Colour 0 must be the majority colour
-    colours = {0:0, 1:1 , 2:1 ,3:0} #,4:1,5:0}
-    lowerbounds = [(1,1),(1,1)]
-    upperbounds = [(1,1),(1,1)]
+    # switch married to 'majority color'
+    colours = {0:1, 1:0 , 2:2} #,4:1,5:0}
+    nx.set_node_attributes(G,colours,"colour")
+    
+    lowerbounds = [(1,1),(28,100),(13,100)]
+    upperbounds = [(1,1),(30,100),(15,100)]
+    cents = 25
 
-    nx.set_node_attributes(G_r,colours,"colour")
+    edge_weights = list(set([tuple[2]['weight'] for tuple in G.edges(data = True)]))
+    edge_weights.sort()
 
-    pos = nx.spring_layout(G_r)
+    lower = 0
+    upper = len(edge_weights)
 
-    blue_nodes = [v for v in G_r.nodes if colours[v] == 0]
-    red_nodes = [v for v in G_r.nodes if colours[v] == 1]
+    final_answer = 0
+    final_rad = 0
 
-    nx.draw_networkx_nodes(G_r, pos, nodelist=blue_nodes, node_color='b', node_size=500)
-    nx.draw_networkx_nodes(G_r, pos, nodelist=red_nodes, node_color='r', node_size=500)
-    nx.draw_networkx_edges(G_r, pos, width=1.0, alpha=0.5)
-    nx.draw_networkx_labels(G_r, pos, {i:i for i in G_r.nodes()}, font_color='w', font_size=14, font_weight="bold")
+    while lower < upper:
+        x = lower + (upper-lower)//2
+        print('Trying radius: ' + str(edge_weights[x]) + '... at index ' + str(x))
+        Gr = threshhold_graph(G,edge_weights[x])
+        cM = fair_k_center(Gr,cents,lowerbounds,upperbounds)
+        print('time to optimze!')
+        cM.optimize()
+        print('will i ever get here..')
+        pM = cM
+        if x != 0 and cM.status == GRB.Status.OPTIMAL:
+            print('Trying pradius: ' + str(edge_weights[x-1]))
+            Gr2 = threshhold_graph(G,edge_weights[x-1])
+            pM = fair_k_center(Gr2,cents,lowerbounds,upperbounds)
+            pM.optimize()
 
-    plt.show()
+        if cM.status == GRB.Status.OPTIMAL and  pM.status != GRB.Status.OPTIMAL:
+            final_answer = cM
+            final_rad = edge_weights[x]
+            lower = upper + 1
+        elif cM.status == GRB.Status.OPTIMAL and pM.status == GRB.Status.OPTIMAL:
+            upper = x
+        else:
+            if lower == x:
+                break
+            lower = x
 
-    k = 1
-    model = fair_k_center(G_r,k,lowerbounds,upperbounds)
-    # model.write("fairkcenter.lp")
-    model.optimize()
-    # model.printAttr("X")
-    for v in model.getVars():
-        print(str(v.varName) + " \t| " + str(v.x))
+    file1 = open("big_fair_test.txt", "w")
+    file1.write('RADIUS: ' + str(final_rad) + '\n')
+
+    if final_answer == 0:
+        file1.write('No answer found..')
+    else:
+        for a in final_answer.getVars():
+            file1.write(a.varName + " = " + str(a.x))   
+
+
 
 if __name__ == '__main__':
         main()
