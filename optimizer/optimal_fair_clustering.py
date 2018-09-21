@@ -44,7 +44,6 @@ def fair_k_center(G,k,lowerbounds,upperbounds):
     y = model.__data[1]
     g = len(lowerbounds) #Number of colours
 
-
     model.write("fairkcenter.lp")
 
     colourdict = nx.get_node_attributes(G,"colour")
@@ -69,6 +68,17 @@ def fair_k_center(G,k,lowerbounds,upperbounds):
     return model
 
 def draw_graph(G):
+    # pos = nx.spring_layout(G)
+    #
+    # blue_nodes = [v for v in G.nodes if colours[v] == 0]
+    # red_nodes = [v for v in G.nodes if colours[v] == 1]
+    #
+    # nx.draw_networkx_nodes(G, pos, nodelist=blue_nodes, node_color='b', node_size=500)
+    # nx.draw_networkx_nodes(G, pos, nodelist=red_nodes, node_color='r', node_size=500)
+    # nx.draw_networkx_edges(G, pos, width=1.0, alpha=0.5)
+    # nx.draw_networkx_labels(G, pos, {i: i for i in G.nodes()}, font_color='w', font_size=14, font_weight="bold")
+    #
+    # plt.show()
     nx.draw(G,with_labels=True)
     plt.show()
 
@@ -96,16 +106,23 @@ def main():
     # for first 1000 - 599 have color 1, 132 have color 2, 269 have color 0 
     G = make_graph(test_data,euclidean_metric)
 
-    
+    colour_counts = {0:0, 1:0, 2:0}
+
     for i in range(n):
         thing = G.nodes[i]['colour']
         if thing == ' 0':
             G.nodes[i]['colour'] = 1
+            thing = 1
         elif thing == ' 1':
             G.nodes[i]['colour'] = 0
+            thing = 0
         else:
             G.nodes[i]['colour'] = 2
-    
+            thing = 2
+
+        colour_counts[thing] += 1
+
+    print(colour_counts)
 
     print('Made graph!!')
 
@@ -118,13 +135,26 @@ def main():
   #  nx.set_node_attributes(G,colours,"colour")
     #colorthing = nx.get_node_attributes(G,"colour")
     #print('colorthing' + str(colorthing))
-    
-    lowerbounds = [(1,1),(25,58),(12,58)]# [(1,1),(40,100),(18,100)]
-    upperbounds = [(1,1),(28,58),(16,58)]# [(1,1),(44,100),(20,100)]
-    cents = 5
 
-    edge_weights = list(set([tuple[2]['weight'] for tuple in G.edges(data = True)]))
+
+    # TODO make take input
+
+    majority_count = colour_counts[0]
+    lowerbounds = [(1,1),(colour_counts[1],majority_count),(colour_counts[2],majority_count)]# [(1,1),(40,100),(18,100)]
+    upperbounds = [(1,1),(colour_counts[1],majority_count),(colour_counts[2],majority_count)]# [(1,1),(44,100),(20,100)]
+    cents = 1
+
+    edge_weights = list(set([tuple[2]['weight'] for tuple in G.edges(data=True)]))
     edge_weights.sort()
+    # max_radius = edge_weights[-1]
+    #
+    # G_r = threshhold_graph(G,max_radius)
+    #
+    # model = fair_k_center(G_r, cents, lowerbounds, upperbounds)
+    # model.optimize()
+    #
+    # exit()
+
 
     lower = 0
     upper = len(edge_weights)
