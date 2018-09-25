@@ -80,8 +80,8 @@ def main():
 
     # G_r = threshhold_graph(G,r)
     # G_r = complete_graph(8)
-    G_r = nx.cycle_graph(8)
-    k = 5
+    G_r = nx.cycle_graph(5)
+    k = 2
     S = set([1])
     draw_graph(G_r)
 
