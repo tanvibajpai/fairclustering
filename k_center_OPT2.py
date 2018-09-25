@@ -26,23 +26,7 @@ def k_center(G,k):
                 model.addConstr(x[u, v] == 0)
 
 
-    # model.addConstr(quicksum(y[u] for u in G.nodes()) == k) #Constraint 1
-    #
-    # for v in G.nodes():
-    #     mylist = [x[u, v] for u in G[v]]
-    #     sumlist = quicksum([x[u, v] for u in G[v]])
-    #     nbrs = G[v]
-    #     model.addConstr(quicksum([x[u,v] for u in G[v]]) + x[v,v] == 1) #Constraint 2
-    #
-    # for u in G.nodes():
-    #     for v in G.nodes():
-    #         model.addConstr(x[u, v] <= y[u]) # Constraint 3
-    #
-    # for u in G.nodes():
-    #     for v in G.nodes():
-    #         if not (u,v) in G.edges and not u == v:
-    #             model.addConstr(x[u, v] == 0) # Constraint 6
-
+  
     model.update()
     model.__data = x,y
 

@@ -16,7 +16,7 @@ def get_data(filename, delimeter=","):
 
 def main():
 
-    read_data = get_data('norm_data.txt',',')
+    read_data = get_data('normalized_bank_data.txt',',')
 
     use_data = [(float(line[0]), float(line[1]), int(line[2])) for line in read_data]
 
@@ -46,11 +46,19 @@ def main():
     #OPTIMAL SOLUTION FOR FIRST 500 POINTS
     #rad = 0.0704399555878803
     #cents = [209,479,456,346,404,391,198,93,195,309]
+
     rad = 0
     cents = []
 
     fig = plt.figure()
-    ax = fig.add_subplot(1,1,1)
+    #fig.suptitle('K-Center Clustering on Bank Data', fontsize=14,fontweight='bold')
+    ax = fig.add_subplot(111)
+    fig.subplots_adjust(top=0.85)
+
+    ax.set_title('Bank Data')
+    ax.set_xlabel('Age (normalized)')
+    ax.set_ylabel('Bank Balance (normalized)')
+
 
     for i in cents:
         point = better_data[i]
@@ -58,7 +66,11 @@ def main():
         circ = plt.Circle((point[0], point[1]), rad, ec='k',fc='none')
         ax.add_patch(circ)
 
-
+   # plt.plot(range(1))
+    plt.xlim(0, 1)
+    plt.ylim(-0.1, .7)
+    plt.gca().set_aspect('equal', adjustable='box')
+    plt.draw()
     plt.scatter(*zip(*better_data))
 
     plt.show()

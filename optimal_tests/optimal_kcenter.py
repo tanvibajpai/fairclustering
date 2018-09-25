@@ -89,23 +89,7 @@ def main():
    # data = get_data("bank.csv", ";")
     read_data = get_data("norm_data.txt",',')
 
-   # for i in range(len(use_data)):
-  #      print(str(i) + '--' + str(use_data[i]))
-   # print('Got Data!')
 
-   # return 0
-
-
-   # colours = {"single": 0, "married": 1, "divorced": 2, "unknown": 3}
-   # max_age = -1
-  #   max_balance = -1
-
-
-  #  for line in data:
-   #     if int(line[0]) > max_age:
-    #        max_age = int(line[0])
-    #    if int(line[5]) > max_balance:
-    #        max_balance = int(line[5])
 
 
 

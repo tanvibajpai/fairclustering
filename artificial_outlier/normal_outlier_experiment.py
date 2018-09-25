@@ -1,6 +1,8 @@
 import networkx as nx
 import numpy as np
 import itertools
+import matplotlib.pyplot as plt
+import scipy
 
 
 
@@ -177,7 +179,7 @@ def lists_to_graph(red_points,blue_points):
     return G
 
 def main():
-    n = 1000
+    n = 500
     mu_r = 0
     sig_r = 1
     mu_b = 0
@@ -186,8 +188,21 @@ def main():
 
     red_points, blue_points = generate_data(n,mu_r,sig_r,mu_b,sig_b,pi)
 
+
+
     print('Got points!')
     # print(red_points,blue_points)
+
+    point_size = 3
+
+    use_data = []
+    for a in red_points:
+        use_data.append((a,-0.1,point_size,'r'))
+
+
+    for b in blue_points:
+        use_data.append((b,0.1,point_size,'b'))
+
 
     G = lists_to_graph(red_points,blue_points)
 
@@ -195,8 +210,8 @@ def main():
 
    # G_matrix = graph_to_matrix(G)
 
-    k = 50
-    p = 850
+    k = 15
+    p = 490
 
     num_red = 0
     num_blue = 0
@@ -231,10 +246,38 @@ def main():
     file.write('% RED - ' + str(per_red) + '\n')
     file.write('% BLUE - ' + str(per_blue) + '\n')
 
+    fig = plt.figure()
+    # fig.suptitle('K-Center Clustering on Bank Data', fontsize=14,fontweight='bold')
+    ax = fig.add_subplot(111)
+    fig.subplots_adjust(top=0.85)
 
+    ax.set_title('Artificial Data')
+    #ax.set_xlabel('Age (normalized)')
+    #ax.set_ylabel('Bank Balance (normalized)')
 
+    cents = []
 
+    for i in range(len(centers)):
+        if centers[i] == 1:
+            cents.append(i)
 
+    #print(str(cents))
+
+    for j in cents:
+        point = use_data[j]
+
+        rect = plt.Rectangle((point[0] - rad,-0.11),2*rad,0.22,ec='k', fc = 'none')
+        #circ = plt.Circle((point[0], 0), rad, ec='k', fc='none')
+        #ax.add_patch(circ)
+        ax.add_patch(rect)
+
+   # plt.xlim(0, 1)
+    #plt.ylim(-0.2, 0.2)
+    #plt.gca().set_aspect('equal', adjustable='box')
+    plt.draw()
+    plt.scatter(*zip(*use_data))
+
+    plt.show()
 
 
 if __name__ == "__main__":
